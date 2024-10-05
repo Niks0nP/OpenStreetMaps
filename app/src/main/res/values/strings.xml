@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">OpenStreetMaps</string>
+    <string name="btn_user_location">Button_set_user_location</string>
+    <string name="button_plus_zoom">Button_plus_zoom</string>
+</resources>
