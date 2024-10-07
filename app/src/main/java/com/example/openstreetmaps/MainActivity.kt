@@ -3,7 +3,9 @@ package com.example.openstreetmaps
 import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.icu.util.Calendar
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -94,6 +96,8 @@ class MainActivity : AppCompatActivity() {
     private fun bottomSheetDialog(marker: Marker) {
         val view = layoutInflater.inflate(R.layout.bottom_dialog, null)
         val bottomSheetDialog = BottomSheetDialog(this)
+        val title = view.findViewById<TextView>(R.id.title_text)
+        title.text = marker.title
         bottomSheetDialog.setContentView(view)
         bottomSheetDialog.show()
     }
