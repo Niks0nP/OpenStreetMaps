@@ -2,4 +2,12 @@
     <string name="app_name">OpenStreetMaps</string>
     <string name="btn_user_location">Button_set_user_location</string>
     <string name="button_plus_zoom">Button_plus_zoom</string>
+    <string name="marker">marker</string>
+    <string name="image_btn">image_btn</string>
+    <string name="icon">icon</string>
+    <string name="info_tap_on_map">Для создания маркера сделайте долгое нажатие</string>
+    <string name="location_permission_text">Не даны разрешения для местоположения</string>
+    <string name="no_access_gps">Нет доступа к местоположению</string>
+    <string name="name">Максим</string>
+
 </resources>

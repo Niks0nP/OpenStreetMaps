@@ -6,14 +6,22 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
-class MapSettings(private val mapView: MapView, private val myLocationOverlay: MyLocationNewOverlay) {
+class MapSettings(private val mapView: MapView,
+                  private val context: Context,
+                  private val myLocationOverlay: MyLocationNewOverlay)
+    : MapEventsReceiver {
+
+        var onClick: ((Marker) -> Boolean)? = null
 
     fun createMap() {
         mapView.setTileSource(TileSourceFactory.MAPNIK)
@@ -45,7 +53,7 @@ class MapSettings(private val mapView: MapView, private val myLocationOverlay: M
         mapView.controller.animateTo(myLocationOverlay.myLocation)
     }
 
-    fun currentLocation(context: Context, activity: MainActivity) {
+    fun currentLocation(activity: MainActivity) {
         val fusedLocationProvider = LocationServices.getFusedLocationProviderClient(context)
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -66,16 +74,36 @@ class MapSettings(private val mapView: MapView, private val myLocationOverlay: M
         }
         fusedLocationProvider.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
-                userLocation()
                 val currentLocation = GeoPoint(location.latitude, location.longitude)
                 mapView.controller.animateTo(currentLocation)
             } else
                 Toast.makeText(
                     context,
-                    "Нет доступа к местоположению",
+                    R.string.no_access_gps,
                     Toast.LENGTH_SHORT
                 ).show()
         }
     }
 
+    override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+        Toast.makeText(context, R.string.info_tap_on_map, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    override fun longPressHelper(p: GeoPoint?): Boolean {
+        showPoint(p)
+        return true
+    }
+
+    private fun showPoint(position: GeoPoint?) {
+        val marker = Marker(mapView)
+        marker.position = position
+        marker.icon = ContextCompat.getDrawable(context, R.drawable.icon_marker)
+        marker.title = context.getString(R.string.name)
+        marker.setOnMarkerClickListener { marker, _ ->
+            onClick?.invoke(marker) ?: false
+        }
+        mapView.overlays.add(marker)
+        mapView.invalidate()
+    }
 }

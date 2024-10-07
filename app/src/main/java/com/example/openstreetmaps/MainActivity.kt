@@ -9,8 +9,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.openstreetmaps.databinding.ActivityMainBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.osmdroid.views.MapView
 import org.osmdroid.config.Configuration.*
+import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
@@ -39,12 +42,19 @@ class MainActivity : AppCompatActivity() {
 
         mapView = binding.mapView
         myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(this), mapView)
-        mapSettings = MapSettings(mapView, myLocationOverlay)
+        mapSettings = MapSettings(mapView,this, myLocationOverlay)
         mapSettings.createMap()
+        mapSettings.onClick = { marker ->
+            bottomSheetDialog(marker)
+            true
+        }
 
         btnUserLocation()
         btnZoomIn()
         btnZoomOut()
+
+        val eventOverlay = MapEventsOverlay(mapSettings)
+        mapView.overlays.add(eventOverlay)
     }
 
     override fun onResume() {
@@ -62,8 +72,8 @@ class MainActivity : AppCompatActivity() {
     private fun btnUserLocation() {
         val buttonUserLocation = binding.currentUserLocation
         buttonUserLocation.setOnClickListener {
-            mapSettings.goToUserLocation()
             myLocationOverlay.enableMyLocation()
+            mapSettings.goToUserLocation()
         }
     }
 
@@ -81,6 +91,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun bottomSheetDialog(marker: Marker) {
+        val view = layoutInflater.inflate(R.layout.bottom_dialog, null)
+        val bottomSheetDialog = BottomSheetDialog(this)
+        bottomSheetDialog.setContentView(view)
+        bottomSheetDialog.show()
+    }
+
     private val locationPermission = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -90,14 +107,20 @@ class MainActivity : AppCompatActivity() {
                     applicationContext,
                     sharedPreference
                 )
-                mapSettings.currentLocation(this, this@MainActivity)
+                mapSettings.currentLocation(this@MainActivity)
                 mapSettings.userLocation()
             }
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                mapSettings.currentLocation(this, this@MainActivity)
+                getInstance().load(
+                    applicationContext,
+                    sharedPreference
+                )
+                mapSettings.currentLocation(this@MainActivity)
+                mapSettings.userLocation()
             }
             else -> {
-                Toast.makeText(this, "Нет доступа к местоположению", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.location_permission_text, Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
